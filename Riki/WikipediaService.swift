@@ -6,89 +6,149 @@
 //
 
 import Foundation
-import Combine
 import SwiftSoup
 
+// MARK: - Custom Errors
+enum WikipediaError: LocalizedError {
+    case invalidURL
+    case noData
+    case parsingError(String)
+    case networkError(Error)
+    case articleNotFound
+    
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL:
+            return "Invalid Wikipedia URL"
+        case .noData:
+            return "No data received from Wikipedia"
+        case .parsingError(let message):
+            return "Failed to parse article: \(message)"
+        case .networkError(let error):
+            return "Network error: \(error.localizedDescription)"
+        case .articleNotFound:
+            return "Article not found"
+        }
+    }
+}
+
+// MARK: - Wikipedia Service
+@MainActor
 class WikipediaService {
     static let shared = WikipediaService()
     
-    private init() {}
+    private let session: URLSession
+    private let jsonDecoder: JSONDecoder
     
-    func fetchRandomArticle() -> AnyPublisher<WikiArticle, Error> {
-        return fetchRandomArticleSummary()
-            .flatMap { summaryResponse -> AnyPublisher<WikiArticle, Error> in
-                self.fetchFullArticleContent(for: summaryResponse)
-                    .map { sections -> WikiArticle in
-                        self.createArticleFromSummary(summaryResponse, sections: sections)
-                    }
-                    .catch { error -> AnyPublisher<WikiArticle, Error> in
-                        // If fetching full content fails, return an article with just the summary
-                        print("Error fetching full article content: \(error). Falling back to summary.")
-                        return Just(self.createArticleFromSummary(summaryResponse, sections: []))
-                            .setFailureType(to: Error.self)
-                            .eraseToAnyPublisher()
-                    }
-                    .eraseToAnyPublisher()
-            }
-            .eraseToAnyPublisher()
+    private init() {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 60
+        config.waitsForConnectivity = true
+        
+        self.session = URLSession(configuration: config)
+        self.jsonDecoder = JSONDecoder()
     }
-
-    private func fetchRandomArticleSummary() -> AnyPublisher<WikipediaDetailResponse, Error> {
+    
+    func fetchRandomArticle() async throws -> WikiArticle {
+        // First, get a random article summary
+        let summaryResponse = try await fetchRandomArticleSummary()
+        
+        // Then, try to fetch full content
+        do {
+            let sections = try await fetchFullArticleContent(for: summaryResponse)
+            return createArticleFromSummary(summaryResponse, sections: sections)
+        } catch {
+            // If fetching full content fails, return an article with just the summary
+            print("Warning: Failed to fetch full article content: \(error). Using summary only.")
+            return createArticleFromSummary(summaryResponse, sections: [])
+        }
+    }
+    
+    // MARK: - Private Methods
+    
+    private func fetchRandomArticleSummary() async throws -> WikipediaDetailResponse {
         let randomSummaryURL = "https://en.wikipedia.org/api/rest_v1/page/random/summary"
         
         guard let url = URL(string: randomSummaryURL) else {
-            return Fail(error: URLError(.badURL)).eraseToAnyPublisher()
+            throw WikipediaError.invalidURL
         }
         
-        return URLSession.shared.dataTaskPublisher(for: url)
-            .tryMap { data, response -> Data in
-                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                    throw URLError(.badServerResponse)
-                }
-                return data
+        do {
+            let (data, response) = try await session.data(from: url)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw WikipediaError.networkError(URLError(.badServerResponse))
             }
-            .decode(type: WikipediaDetailResponse.self, decoder: JSONDecoder())
-            .eraseToAnyPublisher()
-    }
-
-    private func fetchFullArticleContent(for summaryResponse: WikipediaDetailResponse) -> AnyPublisher<[ArticleSection], Error> {
-        let title = summaryResponse.title
-        let parseAPIURLString = "https://en.wikipedia.org/w/api.php?action=parse&page=\(title.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")&prop=text&format=json&origin=*"
-        
-        guard let fullContentURL = URL(string: parseAPIURLString) else {
-            return Fail(error: URLError(.badURL)).eraseToAnyPublisher()
+            
+            guard httpResponse.statusCode == 200 else {
+                throw WikipediaError.networkError(URLError(.badServerResponse))
+            }
+            
+            guard !data.isEmpty else {
+                throw WikipediaError.noData
+            }
+            
+            return try jsonDecoder.decode(WikipediaDetailResponse.self, from: data)
+            
+        } catch let decodingError as DecodingError {
+            throw WikipediaError.parsingError("Failed to decode summary: \(decodingError.localizedDescription)")
+        } catch {
+            throw WikipediaError.networkError(error)
         }
-        
-        return URLSession.shared.dataTaskPublisher(for: fullContentURL)
-            .tryMap { data, response -> Data in
-                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                    throw URLError(.badServerResponse)
-                }
-                return data
-            }
-            .tryMap { data -> [ArticleSection] in
-                return try self.parseArticleContentResponse(data: data)
-            }
-            .eraseToAnyPublisher()
-    }
-
-    private func parseArticleContentResponse(data: Data) throws -> [ArticleSection] {
-        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-        
-        guard let parseData = json?["parse"] as? [String: Any],
-              let textData = parseData["text"] as? [String: Any],
-              let htmlContent = textData["*"] as? String else {
-            // If parsing fails, return empty sections, the caller will handle fallback.
-            return [] 
-        }
-        
-        return self.parseHTMLContent(htmlContent)
     }
     
-    // Helper method to create a WikiArticle from a summary response
+    private func fetchFullArticleContent(for summaryResponse: WikipediaDetailResponse) async throws -> [ArticleSection] {
+        let title = summaryResponse.title.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let parseAPIURLString = "https://en.wikipedia.org/w/api.php?action=parse&page=\(title)&prop=text&format=json&origin=*"
+        
+        guard let fullContentURL = URL(string: parseAPIURLString) else {
+            throw WikipediaError.invalidURL
+        }
+        
+        do {
+            let (data, response) = try await session.data(from: fullContentURL)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw WikipediaError.networkError(URLError(.badServerResponse))
+            }
+            
+            guard httpResponse.statusCode == 200 else {
+                throw WikipediaError.networkError(URLError(.badServerResponse))
+            }
+            
+            guard !data.isEmpty else {
+                throw WikipediaError.noData
+            }
+            
+            return try parseArticleContentResponse(data: data)
+            
+        } catch let error as WikipediaError {
+            throw error
+        } catch {
+            throw WikipediaError.networkError(error)
+        }
+    }
+    
+    private func parseArticleContentResponse(data: Data) throws -> [ArticleSection] {
+        do {
+            guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let parseData = json["parse"] as? [String: Any],
+                  let textData = parseData["text"] as? [String: Any],
+                  let htmlContent = textData["*"] as? String else {
+                throw WikipediaError.parsingError("Invalid JSON structure")
+            }
+            
+            return parseHTMLContent(htmlContent)
+            
+        } catch {
+            throw WikipediaError.parsingError("Failed to parse JSON: \(error.localizedDescription)")
+        }
+    }
+    
     private func createArticleFromSummary(_ response: WikipediaDetailResponse, sections: [ArticleSection]) -> WikiArticle {
         let dateFormatter = ISO8601DateFormatter()
-        let lastModified = response.lastmodified != nil ? dateFormatter.date(from: response.lastmodified!) : nil
+        let lastModified = response.lastmodified.flatMap { dateFormatter.date(from: $0) }
         
         let finalSections = sections.isEmpty ? [ArticleSection(title: "", level: 0, content: response.extract)] : sections
         
@@ -104,18 +164,24 @@ class WikipediaService {
         )
     }
     
+    // MARK: - HTML Parsing
+    
     private func parseHTMLContent(_ htmlString: String) -> [ArticleSection] {
         var sections: [ArticleSection] = []
+        
         do {
             let doc = try SwiftSoup.parse(htmlString)
-
+            
+            // Remove unwanted elements for cleaner content
             let unwantedSelectors = [
-            ".infobox", ".thumb", ".toc", ".mw-editsection",
-            ".navbox", ".metadata", "table:not(.wikitable)", ".mw-empty-elt",
-            ".mw-jump-link", ".mw-parser-output > style",
-            "img", ".image", ".mbox", ".ambox", ".tmbox",
-            ".vertical-navbox", ".sistersitebox"
+                ".infobox", ".thumb", ".toc", ".mw-editsection",
+                ".navbox", ".metadata", "table:not(.wikitable)", ".mw-empty-elt",
+                ".mw-jump-link", ".mw-parser-output > style",
+                "img", ".image", ".mbox", ".ambox", ".tmbox",
+                ".vertical-navbox", ".sistersitebox", ".shortdescription",
+                ".hatnote", ".dablink", ".rellink", ".magnify"
             ]
+            
             for selector in unwantedSelectors {
                 try doc.select(selector).remove()
             }
@@ -124,141 +190,59 @@ class WikipediaService {
                 return [ArticleSection(title: "Error", level: 0, content: "Could not find main content area.")]
             }
             
+            // Extract introduction
             if let introSection = try extractIntroduction(from: content) {
                 sections.append(introSection)
             }
             
+            // Extract sections from headings
             sections.append(contentsOf: try extractSectionsFromHeadings(in: content))
             
-            // if sections.isEmpty {
-            //     let bodyText = try doc.body()?.text() ?? ""
-            //     if !bodyText.isEmpty {
-            //         sections.append(ArticleSection(title: "", level: 0, content: bodyText))
-            //     }
-            // }
         } catch {
             print("Error parsing HTML: \(error)")
             sections.append(ArticleSection(title: "Error", level: 0, content: "Could not parse article content."))
         }
+        
         return sections
     }
-
+    
     private func extractIntroduction(from content: Element) throws -> ArticleSection? {
         var introText = ""
-        // Iterate through the direct children of the main content element
+        
         for element in try content.children() {
             let tagName = try element.tagName().lowercased()
-            var isSectionHeading = false
-
-            // Check if the element itself is a heading (h1-h6)
-            if tagName.starts(with: "h") && tagName.count == 2 && Int(String(tagName.dropFirst())) != nil {
-                isSectionHeading = true
+            
+            // Stop at first heading
+            if isHeadingElement(element) {
+                break
             }
-            // Check if the element is a common wrapper for a heading (e.g., <div class="mw-heading"><h2>...</h2></div>)
-            else if let hTag = try element.select("h1, h2, h3, h4, h5, h6").first() {
-                 let hTagName = try hTag.tagName().lowercased()
-                 if hTagName.starts(with: "h") && hTagName.count == 2 && Int(String(hTagName.dropFirst())) != nil {
-                    isSectionHeading = true
-                 }
+            
+            // Skip non-content elements
+            if try shouldSkipElement(element) {
+                continue
             }
-
-            if isSectionHeading {
-                break // Stop accumulating intro text when the first section heading is encountered
-            }
-
-            // Append the text of the current element to the introText
-            // Filter out some common non-content elements that might appear before the first heading
-            if try !element.hasClass("shortdescription") && 
-               !element.hasClass("hatnote") && 
-               !element.hasClass("mw-jump-link") && 
-               element.tagName().lowercased() != "meta" && 
-               element.tagName().lowercased() != "style" &&
-               !element.hasClass("toc") && // Table of contents
-               !element.className().contains("infobox") && // Infoboxes
-               !element.className().contains("navbox") // Navigation boxes
-            {
-                let elementText = try formatElementContent(element)
-                if !elementText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    introText += elementText + "\n"
-                }
+            
+            let elementText = try formatElementContent(element)
+            if !elementText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                introText += elementText + "\n"
             }
         }
-
+        
         let trimmedIntro = introText.trimmingCharacters(in: .whitespacesAndNewlines)
-        // Return an ArticleSection for the introduction with level 0 and an empty title
         return trimmedIntro.isEmpty ? nil : ArticleSection(title: "", level: 0, content: trimmedIntro)
     }
-
-    private func formatElementContent(_ element: Element) throws -> String {
-        let tagName = try element.tagName().lowercased()
-        
-        // Handle unordered lists
-        if tagName == "ul" {
-            var formattedList = ""
-            for listItem in try element.select("li") {
-                formattedList += "• " + (try listItem.text()) + "\n"
-            }
-            return formattedList
-        }
-        
-        // Handle ordered lists
-        if tagName == "ol" {
-            var formattedList = ""
-            let listItems = try element.select("li")
-            for (index, listItem) in listItems.enumerated() {
-                formattedList += "\(index + 1). " + (try listItem.text()) + "\n"
-            }
-            return formattedList
-        }
-        
-        // Handle tables
-        if tagName == "table" && (try element.hasClass("wikitable")) {
-            var tableData: [[String]] = []
-            
-            // Process header row
-            if let headerRow = try element.select("tr").first() {
-                var headers: [String] = []
-                for header in try headerRow.select("th") {
-                    headers.append(try header.text().trimmingCharacters(in: .whitespacesAndNewlines))
-                }
-                if !headers.isEmpty {
-                    tableData.append(headers)
-                }
-            }
-            
-            // Process data rows
-            for row in try element.select("tr").dropFirst() {
-                var rowData: [String] = []
-                for cell in try row.select("td") {
-                    rowData.append(try cell.text().trimmingCharacters(in: .whitespacesAndNewlines))
-                }
-                if !rowData.isEmpty {
-                    tableData.append(rowData)
-                }
-            }
-            
-            // Convert table data to string representation
-            if !tableData.isEmpty {
-                return "<table>" + tableData.map { row in row.joined(separator: "\t") }.joined(separator: "\n") + "</table>"
-            }
-        }
-        
-        // Handle paragraphs and other elements
-        return try element.text()
-    }
-
+    
     private func extractSectionsFromHeadings(in content: Element) throws -> [ArticleSection] {
         var sections: [ArticleSection] = []
-        var currentSectionTitle: String? = nil
-        var currentSectionLevel: Int? = nil
+        var currentSectionTitle: String?
+        var currentSectionLevel: Int?
         var currentSectionContent = ""
-        var pastIntroPhase = false // Becomes true after the first actual section heading is processed
-
-        // Helper to finalize the current section
+        var pastIntroPhase = false
+        
         func finalizeCurrentSection() {
             if let title = currentSectionTitle, let level = currentSectionLevel {
                 let trimmedContent = currentSectionContent.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !title.isEmpty || !trimmedContent.isEmpty { // Add section if it has a non-empty title or content
+                if !title.isEmpty || !trimmedContent.isEmpty {
                     sections.append(ArticleSection(title: title, level: level, content: trimmedContent))
                 }
             }
@@ -266,91 +250,159 @@ class WikipediaService {
             currentSectionLevel = nil
             currentSectionContent = ""
         }
-
+        
         for element in try content.children() {
-            var isPotentialHeadingContainer = false
-            var actualHeadingTag: Element? = nil
-            var identifiedLevel = 0
-            var identifiedTitle = ""
-
-            let tagName = try element.tagName().lowercased()
-
-            // Check if the element itself is h1-h6
-            if tagName.starts(with: "h") && tagName.count == 2, let level = Int(String(tagName.dropFirst())) {
-                isPotentialHeadingContainer = true
-                actualHeadingTag = element
-                identifiedLevel = level
-                identifiedTitle = try element.text()
-            } 
-            // Check if element contains a h1-h6 (e.g. <div class="mw-heading"><h2>...</h2></div>)
-            else if let hTag = try element.select("h1, h2, h3, h4, h5, h6").first() {
-                // Ensure this hTag is a primary heading for this element, not deeply nested.
-                // A simple check: if the element's direct children include this hTag or its parent.
-                var isPrimaryHeading = false
-                if element == hTag.parent() || element == hTag { // hTag is direct child or element itself
-                    isPrimaryHeading = true
-                } else if let hTagParent = hTag.parent(), element == hTagParent.parent() && hTagParent.hasClass("mw-headline") { // Common pattern: div > span.mw-headline > hX
-                    isPrimaryHeading = true
-                }
-                // More specific check for structures like <div class="mw-heading mw-heading2"><h2>Title</h2></div>
-                if try element.hasClass("mw-heading") && hTag.parent() == element {
-                    isPrimaryHeading = true
-                }
-
-                if isPrimaryHeading {
-                    let hTagName = try hTag.tagName().lowercased()
-                    if let level = Int(String(hTagName.dropFirst())) {
-                        isPotentialHeadingContainer = true
-                        actualHeadingTag = hTag
-                        identifiedLevel = level
-                        identifiedTitle = try hTag.text()
-                    }
-                }
-            }
-
-            if isPotentialHeadingContainer {
-                // This is the first heading encountered by this function after intro extraction.
-                // Or, it's a subsequent heading.
+            if let (level, title) = try extractHeadingInfo(from: element) {
                 if !pastIntroPhase {
-                    pastIntroPhase = true // We are now processing actual sections
+                    pastIntroPhase = true
                 }
                 
-                // Finalize the previous section before starting a new one
                 finalizeCurrentSection()
+                currentSectionTitle = title
+                currentSectionLevel = level
                 
-                currentSectionTitle = identifiedTitle
-                currentSectionLevel = identifiedLevel
-                // Content will be added from subsequent non-heading elements
-
-            } else {
-                // If it's not a heading, and we are past the intro phase (first heading processed)
-                // and a section is currently being built (currentSectionTitle != nil)
-                if pastIntroPhase, currentSectionTitle != nil {
-                    // Filter out some common non-content elements that might appear between sections
-                    if try !element.hasClass("shortdescription") && 
-                   !element.hasClass("hatnote") && 
-                   !element.hasClass("mw-jump-link") && 
-                   element.tagName().lowercased() != "meta" && 
-                   element.tagName().lowercased() != "style" &&
-                   !element.hasClass("toc") &&
-                   !element.className().contains("infobox") &&
-                   !element.className().contains("navbox")
-                {
+            } else if pastIntroPhase, currentSectionTitle != nil {
+                if try !shouldSkipElement(element) {
                     let elementText = try formatElementContent(element)
                     if !elementText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         currentSectionContent += elementText + "\n"
                     }
                 }
-                }
             }
         }
-
-        // Finalize the last section after the loop
+        
         finalizeCurrentSection()
-
         return sections
     }
+    
+    // MARK: - Helper Methods
+    
+    private func isHeadingElement(_ element: Element) -> Bool {
+        do {
+            let tagName = try element.tagName().lowercased()
+            if tagName.starts(with: "h") && tagName.count == 2 && Int(String(tagName.dropFirst())) != nil {
+                return true
+            }
+            
+            if let hTag = try element.select("h1, h2, h3, h4, h5, h6").first() {
+                let isParent = element == hTag.parent()
+                let hasHeadingClass = try element.hasClass("mw-heading")
+                return isParent || hasHeadingClass
+            }
+            
+            return false
+        } catch {
+            return false
+        }
+    }
+    
+    private func extractHeadingInfo(from element: Element) throws -> (level: Int, title: String)? {
+        let tagName = try element.tagName().lowercased()
+        
+        if tagName.starts(with: "h") && tagName.count == 2, let level = Int(String(tagName.dropFirst())) {
+            return (level, try element.text())
+        }
+        
+        if let hTag = try element.select("h1, h2, h3, h4, h5, h6").first() {
+            let hTagName = try hTag.tagName().lowercased()
+            if let level = Int(String(hTagName.dropFirst())) {
+                return (level, try hTag.text())
+            }
+        }
+        
+        return nil
+    }
+    
+    private func shouldSkipElement(_ element: Element) throws -> Bool {
+        let skipClasses = ["shortdescription", "hatnote", "mw-jump-link", "toc", "infobox", "navbox"]
+        let skipTags = ["meta", "style"]
+        
+        let tagName = try element.tagName().lowercased()
+        if skipTags.contains(tagName) {
+            return true
+        }
+        
+        for skipClass in skipClasses {
+            let hasClass = try element.hasClass(skipClass)
+            let containsClass = try element.className().contains(skipClass)
+            if hasClass || containsClass {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    private func formatElementContent(_ element: Element) throws -> String {
+        let tagName = try element.tagName().lowercased()
+        
+        switch tagName {
+        case "ul":
+            return try formatUnorderedList(element)
+        case "ol":
+            return try formatOrderedList(element)
+        case "table":
+            if try element.hasClass("wikitable") {
+                return try formatTable(element)
+            }
+            return try element.text()
+        default:
+            return try element.text()
+        }
+    }
+    
+    private func formatUnorderedList(_ element: Element) throws -> String {
+        var formattedList = ""
+        for listItem in try element.select("li") {
+            formattedList += "• " + (try listItem.text()) + "\n"
+        }
+        return formattedList
+    }
+    
+    private func formatOrderedList(_ element: Element) throws -> String {
+        var formattedList = ""
+        let listItems = try element.select("li")
+        for (index, listItem) in listItems.enumerated() {
+            formattedList += "\(index + 1). " + (try listItem.text()) + "\n"
+        }
+        return formattedList
+    }
+    
+    private func formatTable(_ element: Element) throws -> String {
+        var tableData: [[String]] = []
+        
+        // Process header row
+        if let headerRow = try element.select("tr").first() {
+            var headers: [String] = []
+            for header in try headerRow.select("th") {
+                headers.append(try header.text().trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            if !headers.isEmpty {
+                tableData.append(headers)
+            }
+        }
+        
+        // Process data rows
+        for row in try element.select("tr").dropFirst() {
+            var rowData: [String] = []
+            for cell in try row.select("td") {
+                rowData.append(try cell.text().trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            if !rowData.isEmpty {
+                tableData.append(rowData)
+            }
+        }
+        
+        // Convert table data to string representation
+        if !tableData.isEmpty {
+            return "<table>" + tableData.map { row in row.joined(separator: "\t") }.joined(separator: "\n") + "</table>"
+        }
+        
+        return ""
+    }
 }
+
+// MARK: - Response Models
 
 struct ContentURLs: Codable {
     let mobile: MobileURL
