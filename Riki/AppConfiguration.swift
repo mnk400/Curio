@@ -10,7 +10,6 @@ import SwiftUI
 
 // MARK: - App Configuration
 enum AppConfiguration {
-    // MARK: - API Configuration
     enum API {
         static let baseURL = "https://en.wikipedia.org"
         static let randomSummaryEndpoint = "/api/rest_v1/page/random/summary"
@@ -19,7 +18,6 @@ enum AppConfiguration {
         static let resourceTimeout: TimeInterval = 60
     }
     
-    // MARK: - UI Configuration
     enum UI {
         static let defaultFontSize: CGFloat = 16
         static let defaultLineSpacing: CGFloat = 6
@@ -30,7 +28,6 @@ enum AppConfiguration {
         static let maxImageHeight: CGFloat = 250
     }
     
-    // MARK: - Content Configuration
     enum Content {
         static let averageReadingSpeed = 200 // words per minute
         static let maxSectionsToDisplay = 20
@@ -38,7 +35,6 @@ enum AppConfiguration {
         static let maxTableColumns = 10
     }
     
-    // MARK: - Accessibility
     enum Accessibility {
         static let minimumTapTargetSize: CGFloat = 44
         static let preferredContentSizeCategory = ContentSizeCategory.large
@@ -47,7 +43,6 @@ enum AppConfiguration {
 
 // MARK: - App Theme
 enum AppTheme {
-    // MARK: - Colors
     enum Colors {
         static let primary = Color.blue
         static let secondary = Color.gray
@@ -59,7 +54,6 @@ enum AppTheme {
         static let warning = Color.orange
     }
     
-    // MARK: - Gradients (Deprecated - Using solid colors instead)
     enum Gradients {
         // Keeping for backward compatibility but using solid colors
         static let primaryButton = Color.blue
@@ -67,7 +61,6 @@ enum AppTheme {
         static let imageOverlay = Color.clear
     }
     
-    // MARK: - Typography
     enum Typography {
         static let largeTitle = Font.largeTitle.weight(.bold)
         static let title = Font.title.weight(.semibold)
@@ -78,21 +71,16 @@ enum AppTheme {
     }
 }
 
-// MARK: - App Constants
 enum AppConstants {
     static let appName = "Riki"
     static let appVersion = "1.0.0"
     static let wikipediaAttribution = "Content from Wikipedia"
-    static let githubURL = "https://github.com/yourusername/riki"
-    static let supportEmail = "support@riki.app"
+    static let githubURL = "https://github.com/mnk400/riki"
+    static let supportEmail = "me@manik.cc"
 }
 
 // MARK: - Feature Flags
 enum FeatureFlags {
-    static let enableOfflineReading = false
-    static let enableBookmarks = false
-    static let enableHistory = false
     static let enableDarkMode = true
     static let enableShareSheet = true
-    static let enableTextToSpeech = false
 }
