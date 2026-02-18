@@ -26,23 +26,38 @@ struct WikiArticle: Identifiable, Equatable {
     
     /// Optional thumbnail image URL for the article
     let thumbnail: URL?
-    
+
+    /// Image dimensions in pixels (from the API response)
+    let imageWidth: Int?
+    let imageHeight: Int?
+
     /// URL to the full Wikipedia article
     let url: URL
-    
+
     /// Date when the article was last modified
     let lastModified: Date?
-    
+
+    // MARK: - Constants
+
+    /// Minimum pixel dimension to qualify for fullscreen layout
+    private static let fullscreenMinDimension = 800
+
     // MARK: - Computed Properties
-    
+
     /// Returns true if the article has extract content to display
     var hasContent: Bool {
         !extract.isEmpty
     }
-    
+
     /// Returns true if the article has a thumbnail image
     var hasThumbnail: Bool {
         thumbnail != nil
+    }
+
+    /// Returns true if the image is high-res enough for fullscreen display
+    var isHighResImage: Bool {
+        guard let w = imageWidth, let h = imageHeight else { return false }
+        return w >= Self.fullscreenMinDimension && h >= Self.fullscreenMinDimension
     }
     
     static func == (lhs: WikiArticle, rhs: WikiArticle) -> Bool {
@@ -59,6 +74,7 @@ struct WikipediaDetailResponse: Codable {
     let extract: String
     let extract_html: String?
     let thumbnail: ThumbnailInfo?
+    let originalimage: ThumbnailInfo?
     let content_urls: ContentURLs
     let lastmodified: String?
     

@@ -131,12 +131,16 @@ final class WikipediaService: WikipediaServiceProtocol {
         let dateFormatter = ISO8601DateFormatter()
         let lastModified = response.lastmodified.flatMap { dateFormatter.date(from: $0) }
         
+        let bestImage = response.originalimage ?? response.thumbnail
+
         return WikiArticle(
             id: response.id,
             title: response.title,
             extract: response.extract,
             content: "",
-            thumbnail: response.thumbnail?.source,
+            thumbnail: bestImage?.source,
+            imageWidth: bestImage?.width,
+            imageHeight: bestImage?.height,
             url: response.content_urls.mobile.page,
             lastModified: lastModified
         )

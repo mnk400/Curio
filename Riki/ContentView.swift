@@ -81,7 +81,7 @@ private enum Constants {
     static let initialArticleCount = 5
     static let additionalArticleCount = 3
     static let contentHorizontalPadding: CGFloat = 20
-    static let contentBottomPadding: CGFloat = 100
+    static let contentBottomPadding: CGFloat = 60
     static let buttonCornerRadius: CGFloat = 16
     static let buttonHorizontalPadding: CGFloat = 16
     static let buttonVerticalPadding: CGFloat = 8
@@ -89,29 +89,35 @@ private enum Constants {
 
 // MARK: - Article Card View
 
-/// A full-screen card view that displays a Wikipedia article with background image and content overlay
+/// A full-screen card view that displays a Wikipedia article.
+/// Uses fullscreen background image for high-res images, or a compact card layout for low-res/no images.
 struct ArticleCardView: View {
     let article: WikiArticle
     let isCurrentlyVisible: Bool
     let screenSize: CGSize
     @State private var isPresentingFullArticle = false
-    
+
+    private var useFullscreenLayout: Bool {
+        article.hasThumbnail && article.isHighResImage
+    }
+
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            backgroundImageView
-            textReadabilityOverlay
-            articleContentOverlay
+        Group {
+            if useFullscreenLayout {
+                fullscreenLayout
+            } else {
+                compactCardLayout
+            }
         }
         .sheet(isPresented: $isPresentingFullArticle) {
             ArticleWebViewSheet(url: article.url, title: article.title)
         }
     }
-    
-    // MARK: - Private Views
-    
-    /// Background image view with fallback gradient
-    private var backgroundImageView: some View {
-        Group {
+
+    // MARK: - Fullscreen Layout (high-res images)
+
+    private var fullscreenLayout: some View {
+        ZStack(alignment: .bottomLeading) {
             if let thumbnailURL = article.thumbnail {
                 AsyncImage(url: thumbnailURL) { image in
                     image
@@ -120,108 +126,128 @@ struct ArticleCardView: View {
                         .frame(width: screenSize.width, height: screenSize.height)
                         .clipped()
                 } placeholder: {
-                    imagePlaceholder
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(width: screenSize.width, height: screenSize.height)
+                        .overlay(ProgressView().tint(.white))
+                }
+            }
+
+            // Dark gradient for text readability
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [Color.clear, Color.black.opacity(0.85)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .frame(width: screenSize.width, height: screenSize.height)
+
+            // Content pinned to bottom
+            VStack(alignment: .leading, spacing: 12) {
+                articleTitleView
+                if article.hasContent { articleSummaryView }
+                readMoreButton
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, Constants.contentHorizontalPadding)
+            .padding(.bottom, Constants.contentBottomPadding)
+        }
+    }
+
+    // MARK: - Compact Card Layout (low-res / no image)
+
+    private var compactCardLayout: some View {
+        ZStack {
+            // Blurred background from the same image (Apple Music style)
+            if let thumbnailURL = article.thumbnail {
+                AsyncImage(url: thumbnailURL) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: screenSize.width, height: screenSize.height)
+                        .clipped()
+                        .blur(radius: 70)
+                        .scaleEffect(1.2) // prevent blur edge artifacts
+                        .overlay(Color.black.opacity(0.4))
+                } placeholder: {
+                    Color.black
                 }
             } else {
-                fallbackGradientBackground
+                Color.black
             }
-        }
-    }
-    
-    /// Placeholder view shown while image is loading
-    private var imagePlaceholder: some View {
-        Rectangle()
-            .fill(Color.gray.opacity(0.3))
-            .frame(width: screenSize.width, height: screenSize.height)
-            .overlay(
-                ProgressView()
-                    .tint(.white)
-            )
-    }
-    
-    /// Fallback gradient background when no image is available
-    private var fallbackGradientBackground: some View {
-        Rectangle()
-            .fill(LinearGradient(
-                colors: [Color.blue.opacity(0.8), Color.purple.opacity(0.8)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            ))
-            .frame(width: screenSize.width, height: screenSize.height)
-    }
-    
-    /// Dark overlay to improve text readability
-    private var textReadabilityOverlay: some View {
-        Rectangle()
-            .fill(
-                LinearGradient(
-                    colors: [Color.clear, Color.black.opacity(0.8)],
-                    startPoint: .center,
-                    endPoint: .bottom
-                )
-            )
-            .frame(width: screenSize.width, height: screenSize.height)
-    }
-    
-    /// Article content overlay positioned at the bottom
-    private var articleContentOverlay: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            articleTitleView
-            
-            if article.hasContent {
-                articleSummaryView
+
+            VStack(spacing: 0) {
+                // Image centered between safe area top and text
+                if let thumbnailURL = article.thumbnail {
+                    Spacer()
+
+                    AsyncImage(url: thumbnailURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .frame(maxWidth: screenSize.width - (Constants.contentHorizontalPadding * 2))
+                            .frame(maxHeight: screenSize.height * 0.35)
+                    } placeholder: {
+                        ProgressView()
+                            .tint(.white)
+                            .frame(height: 200)
+                    }
+
+                    Spacer()
+                } else {
+                    Spacer()
+                }
+
+                // Text + button pinned at bottom
+                VStack(alignment: .leading, spacing: 12) {
+                    articleTitleView
+                    if article.hasContent { articleSummaryView }
+                    readMoreButton
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, Constants.contentHorizontalPadding)
+                .padding(.bottom, Constants.contentBottomPadding)
             }
-            
-            readMoreButton
+            .padding(.top, 50)
         }
-        .padding(.horizontal, Constants.contentHorizontalPadding)
-        .padding(.bottom, Constants.contentBottomPadding)
-        .frame(maxWidth: screenSize.width - (Constants.contentHorizontalPadding * 2))
+        .clipped()
     }
-    
-    /// Article title view
+
+    // MARK: - Shared Subviews
+
     private var articleTitleView: some View {
         Text(article.title)
             .font(.title2)
             .fontWeight(.bold)
             .foregroundColor(.white)
             .multilineTextAlignment(.leading)
-            .lineLimit(2)
-            .fixedSize(horizontal: false, vertical: true)
-            .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
     }
-    
-    /// Article summary/extract view
+
     private var articleSummaryView: some View {
         Text(article.extract)
             .font(.body)
             .foregroundColor(.white.opacity(0.9))
-            .lineLimit(3)
             .multilineTextAlignment(.leading)
-            .fixedSize(horizontal: false, vertical: true)
-            .shadow(color: .black.opacity(0.5), radius: 1, x: 0, y: 1)
     }
-    
-    /// Button to open the full article
+
     private var readMoreButton: some View {
         Button(action: {
             isPresentingFullArticle = true
         }) {
             HStack(spacing: 8) {
                 Text("Read More")
-                    .font(.subheadline)
+                    .font(.body)
                     .fontWeight(.semibold)
                 Image(systemName: "arrow.right")
-                    .font(.caption)
+                    .font(.subheadline)
             }
-            .foregroundColor(.black)
-            .padding(.horizontal, Constants.buttonHorizontalPadding)
-            .padding(.vertical, Constants.buttonVerticalPadding)
-            .background(
-                RoundedRectangle(cornerRadius: Constants.buttonCornerRadius)
-                    .fill(Color.white)
-            )
-            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+            .foregroundColor(.white)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .glassEffect(.regular.interactive(), in: .capsule)
         }
         .accessibilityLabel("Read full article about \(article.title)")
     }
@@ -243,32 +269,14 @@ struct LoadingCardView: View {
 
 // MARK: - Article WebView Sheet
 
-/// A sheet that presents the full Wikipedia article in a web view
+/// A sheet that presents the full Wikipedia article in Safari with Reader mode
 struct ArticleWebViewSheet: View {
     let url: URL
     let title: String
-    @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
-        NavigationView {
-            WebView(url: url)
-                .navigationTitle(title)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Done") {
-                            dismiss()
-                        }
-                    }
-                    
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        ShareLink(item: url) {
-                            Image(systemName: "square.and.arrow.up")
-                        }
-                        .accessibilityLabel("Share article")
-                    }
-                }
-        }
+        SafariView(url: url)
+            .ignoresSafeArea()
     }
 }
 
@@ -334,8 +342,24 @@ final class WikipediaFeedViewModel: ObservableObject {
         }
         
         isLoading = false
+        prefetchImages()
     }
-    
+
+    /// Prefetches images for articles that haven't been displayed yet
+    private func prefetchImages() {
+        let urls = articles.compactMap(\.thumbnail)
+        for url in urls {
+            guard URLCache.shared.cachedResponse(for: URLRequest(url: url)) == nil else { continue }
+            Task.detached(priority: .utility) {
+                let request = URLRequest(url: url)
+                if let (data, response) = try? await URLSession.shared.data(for: request) {
+                    let cached = CachedURLResponse(response: response, data: data)
+                    URLCache.shared.storeCachedResponse(cached, for: request)
+                }
+            }
+        }
+    }
+
     /// Handles errors that occur during article loading
     /// - Parameters:
     ///   - error: The error that occurred
