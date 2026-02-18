@@ -1,3 +1,11 @@
+//
+//  BookmarksView.swift
+//  Curio
+//
+//  Created by Manik on 17/2/26.
+//
+
+
 import SwiftUI
 import SwiftData
 

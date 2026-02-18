@@ -1,20 +1,16 @@
 {
   "fill" : {
-    "automatic-gradient" : "display-p3:0.71478,0.57047,0.60554,1.00000"
+    "automatic-gradient" : "display-p3:0.40890,0.53344,0.71478,1.00000"
   },
   "groups" : [
     {
       "layers" : [
         {
-          "image-name" : "R.png",
-          "name" : "R",
-          "position" : {
-            "scale" : 0.65,
-            "translation-in-points" : [
-              185,
-              185
-            ]
-          }
+          "fill" : {
+            "solid" : "srgb:1.00000,1.00000,1.00000,1.00000"
+          },
+          "image-name" : "archive.png",
+          "name" : "archive"
         }
       ],
       "shadow" : {

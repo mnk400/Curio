@@ -13,7 +13,6 @@ struct CurioApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .preferredColorScheme(FeatureFlags.enableDarkMode ? nil : .light)
                 .onAppear {
                     setupAppearance()
                 }
@@ -39,10 +38,5 @@ struct CurioApp: App {
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
         UINavigationBar.appearance().compactAppearance = appearance
         
-        // Configure tab bar appearance if needed in future
-        let tabBarAppearance = UITabBarAppearance()
-        tabBarAppearance.configureWithOpaqueBackground()
-        UITabBar.appearance().standardAppearance = tabBarAppearance
-        UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
     }
 }

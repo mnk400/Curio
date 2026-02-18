@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9C4CD5812DC7569300016729 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 9C4CD5802DC7569300016729 /* SwiftSoup */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,7 +55,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9C4CD5812DC7569300016729 /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -117,7 +115,6 @@
 			);
 			name = Curio;
 			packageProductDependencies = (
-				9C4CD5802DC7569300016729 /* SwiftSoup */,
 			);
 			productName = Curio;
 			productReference = 9CA8AF012DC48E0900D5FD1A /* Curio.app */;
@@ -202,7 +199,6 @@
 			mainGroup = 9CA8AEF82DC48E0900D5FD1A;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				9C4CD57F2DC7569300016729 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9CA8AF022DC48E0900D5FD1A /* Products */;
@@ -566,24 +562,6 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		9C4CD57F2DC7569300016729 /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/scinfu/SwiftSoup?tab=readme-ov-file";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.8.7;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		9C4CD5802DC7569300016729 /* SwiftSoup */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9C4CD57F2DC7569300016729 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
-			productName = SwiftSoup;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9CA8AEF92DC48E0900D5FD1A /* Project object */;
 }

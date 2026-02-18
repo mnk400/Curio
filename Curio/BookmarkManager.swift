@@ -1,3 +1,11 @@
+//
+//  BookmarkManager.swift
+//  Curio
+//
+//  Created by Manik on 17/2/26.
+//
+
+
 import Foundation
 import SwiftData
 
