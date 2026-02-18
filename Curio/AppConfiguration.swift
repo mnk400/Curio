@@ -1,6 +1,6 @@
 //
 //  AppConfiguration.swift
-//  Riki
+//  Curio
 //
 //  Created by Manik on 5/1/25.
 //
@@ -72,7 +72,7 @@ enum AppTheme {
 }
 
 enum AppConstants {
-    static let appName = "Riki"
+    static let appName = "Curio"
     static let appVersion = "1.0.0"
     static let wikipediaAttribution = "Content from Wikipedia"
     static let githubURL = "https://github.com/mnk400/riki"

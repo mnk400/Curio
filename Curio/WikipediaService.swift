@@ -1,6 +1,6 @@
 //
 //  WikipediaService.swift
-//  Riki
+//  Curio
 //
 //  Created by Manik on 5/1/25.
 //

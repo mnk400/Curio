@@ -1,14 +1,14 @@
 //
-//  RikiTests.swift
-//  Riki
+//  CurioTests.swift
+//  Curio
 //
 //  Created by Manik on 5/1/25.
 //
 
 import XCTest
-@testable import Riki
+@testable import Curio
 
-final class RikiTests: XCTestCase {
+final class CurioTests: XCTestCase {
     
     // MARK: - WikiArticle Tests
     func testWikiArticleEquality() {

@@ -16,37 +16,37 @@
 			containerPortal = 9CA8AEF92DC48E0900D5FD1A /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 9CA8AF002DC48E0900D5FD1A;
-			remoteInfo = Riki;
+			remoteInfo = Curio;
 		};
 		9CA8AF192DC48E0A00D5FD1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9CA8AEF92DC48E0900D5FD1A /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 9CA8AF002DC48E0900D5FD1A;
-			remoteInfo = Riki;
+			remoteInfo = Curio;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		9CA8AF012DC48E0900D5FD1A /* Riki.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Riki.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		9CA8AF0E2DC48E0A00D5FD1A /* RikiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RikiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		9CA8AF182DC48E0A00D5FD1A /* RikiUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RikiUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9CA8AF012DC48E0900D5FD1A /* Curio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Curio.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9CA8AF0E2DC48E0A00D5FD1A /* CurioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CurioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9CA8AF182DC48E0A00D5FD1A /* CurioUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CurioUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9CA8AF032DC48E0900D5FD1A /* Riki */ = {
+		9CA8AF032DC48E0900D5FD1A /* Curio */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Riki;
+			path = Curio;
 			sourceTree = "<group>";
 		};
-		9CA8AF112DC48E0A00D5FD1A /* RikiTests */ = {
+		9CA8AF112DC48E0A00D5FD1A /* CurioTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = RikiTests;
+			path = CurioTests;
 			sourceTree = "<group>";
 		};
-		9CA8AF1B2DC48E0A00D5FD1A /* RikiUITests */ = {
+		9CA8AF1B2DC48E0A00D5FD1A /* CurioUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = RikiUITests;
+			path = CurioUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -80,9 +80,9 @@
 		9CA8AEF82DC48E0900D5FD1A = {
 			isa = PBXGroup;
 			children = (
-				9CA8AF032DC48E0900D5FD1A /* Riki */,
-				9CA8AF112DC48E0A00D5FD1A /* RikiTests */,
-				9CA8AF1B2DC48E0A00D5FD1A /* RikiUITests */,
+				9CA8AF032DC48E0900D5FD1A /* Curio */,
+				9CA8AF112DC48E0A00D5FD1A /* CurioTests */,
+				9CA8AF1B2DC48E0A00D5FD1A /* CurioUITests */,
 				9CA8AF022DC48E0900D5FD1A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,9 +90,9 @@
 		9CA8AF022DC48E0900D5FD1A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				9CA8AF012DC48E0900D5FD1A /* Riki.app */,
-				9CA8AF0E2DC48E0A00D5FD1A /* RikiTests.xctest */,
-				9CA8AF182DC48E0A00D5FD1A /* RikiUITests.xctest */,
+				9CA8AF012DC48E0900D5FD1A /* Curio.app */,
+				9CA8AF0E2DC48E0A00D5FD1A /* CurioTests.xctest */,
+				9CA8AF182DC48E0A00D5FD1A /* CurioUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -100,9 +100,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		9CA8AF002DC48E0900D5FD1A /* Riki */ = {
+		9CA8AF002DC48E0900D5FD1A /* Curio */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9CA8AF222DC48E0A00D5FD1A /* Build configuration list for PBXNativeTarget "Riki" */;
+			buildConfigurationList = 9CA8AF222DC48E0A00D5FD1A /* Build configuration list for PBXNativeTarget "Curio" */;
 			buildPhases = (
 				9CA8AEFD2DC48E0900D5FD1A /* Sources */,
 				9CA8AEFE2DC48E0900D5FD1A /* Frameworks */,
@@ -113,19 +113,19 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				9CA8AF032DC48E0900D5FD1A /* Riki */,
+				9CA8AF032DC48E0900D5FD1A /* Curio */,
 			);
-			name = Riki;
+			name = Curio;
 			packageProductDependencies = (
 				9C4CD5802DC7569300016729 /* SwiftSoup */,
 			);
-			productName = Riki;
-			productReference = 9CA8AF012DC48E0900D5FD1A /* Riki.app */;
+			productName = Curio;
+			productReference = 9CA8AF012DC48E0900D5FD1A /* Curio.app */;
 			productType = "com.apple.product-type.application";
 		};
-		9CA8AF0D2DC48E0A00D5FD1A /* RikiTests */ = {
+		9CA8AF0D2DC48E0A00D5FD1A /* CurioTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9CA8AF252DC48E0A00D5FD1A /* Build configuration list for PBXNativeTarget "RikiTests" */;
+			buildConfigurationList = 9CA8AF252DC48E0A00D5FD1A /* Build configuration list for PBXNativeTarget "CurioTests" */;
 			buildPhases = (
 				9CA8AF0A2DC48E0A00D5FD1A /* Sources */,
 				9CA8AF0B2DC48E0A00D5FD1A /* Frameworks */,
@@ -137,18 +137,18 @@
 				9CA8AF102DC48E0A00D5FD1A /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				9CA8AF112DC48E0A00D5FD1A /* RikiTests */,
+				9CA8AF112DC48E0A00D5FD1A /* CurioTests */,
 			);
-			name = RikiTests;
+			name = CurioTests;
 			packageProductDependencies = (
 			);
-			productName = RikiTests;
-			productReference = 9CA8AF0E2DC48E0A00D5FD1A /* RikiTests.xctest */;
+			productName = CurioTests;
+			productReference = 9CA8AF0E2DC48E0A00D5FD1A /* CurioTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		9CA8AF172DC48E0A00D5FD1A /* RikiUITests */ = {
+		9CA8AF172DC48E0A00D5FD1A /* CurioUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9CA8AF282DC48E0A00D5FD1A /* Build configuration list for PBXNativeTarget "RikiUITests" */;
+			buildConfigurationList = 9CA8AF282DC48E0A00D5FD1A /* Build configuration list for PBXNativeTarget "CurioUITests" */;
 			buildPhases = (
 				9CA8AF142DC48E0A00D5FD1A /* Sources */,
 				9CA8AF152DC48E0A00D5FD1A /* Frameworks */,
@@ -160,13 +160,13 @@
 				9CA8AF1A2DC48E0A00D5FD1A /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				9CA8AF1B2DC48E0A00D5FD1A /* RikiUITests */,
+				9CA8AF1B2DC48E0A00D5FD1A /* CurioUITests */,
 			);
-			name = RikiUITests;
+			name = CurioUITests;
 			packageProductDependencies = (
 			);
-			productName = RikiUITests;
-			productReference = 9CA8AF182DC48E0A00D5FD1A /* RikiUITests.xctest */;
+			productName = CurioUITests;
+			productReference = 9CA8AF182DC48E0A00D5FD1A /* CurioUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -192,7 +192,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 9CA8AEFC2DC48E0900D5FD1A /* Build configuration list for PBXProject "Riki" */;
+			buildConfigurationList = 9CA8AEFC2DC48E0900D5FD1A /* Build configuration list for PBXProject "Curio" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -209,9 +209,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				9CA8AF002DC48E0900D5FD1A /* Riki */,
-				9CA8AF0D2DC48E0A00D5FD1A /* RikiTests */,
-				9CA8AF172DC48E0A00D5FD1A /* RikiUITests */,
+				9CA8AF002DC48E0900D5FD1A /* Curio */,
+				9CA8AF0D2DC48E0A00D5FD1A /* CurioTests */,
+				9CA8AF172DC48E0A00D5FD1A /* CurioUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -267,12 +267,12 @@
 /* Begin PBXTargetDependency section */
 		9CA8AF102DC48E0A00D5FD1A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 9CA8AF002DC48E0900D5FD1A /* Riki */;
+			target = 9CA8AF002DC48E0900D5FD1A /* Curio */;
 			targetProxy = 9CA8AF0F2DC48E0A00D5FD1A /* PBXContainerItemProxy */;
 		};
 		9CA8AF1A2DC48E0A00D5FD1A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 9CA8AF002DC48E0900D5FD1A /* Riki */;
+			target = 9CA8AF002DC48E0900D5FD1A /* Curio */;
 			targetProxy = 9CA8AF192DC48E0A00D5FD1A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -400,7 +400,7 @@
 		9CA8AF232DC48E0A00D5FD1A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = Riki;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Curio;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
@@ -419,7 +419,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.manik.Riki;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manik.Curio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -430,7 +430,7 @@
 		9CA8AF242DC48E0A00D5FD1A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = Riki;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Curio;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
@@ -449,7 +449,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.manik.Riki;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manik.Curio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -466,12 +466,12 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.manik.RikiTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manik.CurioTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Riki.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Riki";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Curio.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Curio";
 			};
 			name = Debug;
 		};
@@ -484,12 +484,12 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.manik.RikiTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manik.CurioTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Riki.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Riki";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Curio.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Curio";
 			};
 			name = Release;
 		};
@@ -500,12 +500,12 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.manik.RikiUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manik.CurioUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = Riki;
+				TEST_TARGET_NAME = Curio;
 			};
 			name = Debug;
 		};
@@ -516,19 +516,19 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.manik.RikiUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manik.CurioUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = Riki;
+				TEST_TARGET_NAME = Curio;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		9CA8AEFC2DC48E0900D5FD1A /* Build configuration list for PBXProject "Riki" */ = {
+		9CA8AEFC2DC48E0900D5FD1A /* Build configuration list for PBXProject "Curio" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9CA8AF202DC48E0A00D5FD1A /* Debug */,
@@ -537,7 +537,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9CA8AF222DC48E0A00D5FD1A /* Build configuration list for PBXNativeTarget "Riki" */ = {
+		9CA8AF222DC48E0A00D5FD1A /* Build configuration list for PBXNativeTarget "Curio" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9CA8AF232DC48E0A00D5FD1A /* Debug */,
@@ -546,7 +546,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9CA8AF252DC48E0A00D5FD1A /* Build configuration list for PBXNativeTarget "RikiTests" */ = {
+		9CA8AF252DC48E0A00D5FD1A /* Build configuration list for PBXNativeTarget "CurioTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9CA8AF262DC48E0A00D5FD1A /* Debug */,
@@ -555,7 +555,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9CA8AF282DC48E0A00D5FD1A /* Build configuration list for PBXNativeTarget "RikiUITests" */ = {
+		9CA8AF282DC48E0A00D5FD1A /* Build configuration list for PBXNativeTarget "CurioUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9CA8AF292DC48E0A00D5FD1A /* Debug */,

@@ -1,13 +1,13 @@
 //
-//  RikiUITests.swift
-//  RikiUITests
+//  CurioUITests.swift
+//  CurioUITests
 //
 //  Created by Manik Kumar on 5/1/25.
 //
 
 import XCTest
 
-final class RikiUITests: XCTestCase {
+final class CurioUITests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

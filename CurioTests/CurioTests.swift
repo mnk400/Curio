@@ -1,14 +1,14 @@
 //
-//  RikiTests.swift
-//  RikiTests
+//  CurioTests.swift
+//  CurioTests
 //
 //  Created by Manik Kumar on 5/1/25.
 //
 
 import Testing
-@testable import Riki
+@testable import Curio
 
-struct RikiTests {
+struct CurioTests {
 
     @Test func example() async throws {
         // Write your test here and use APIs like `#expect(...)` to check expected conditions.

@@ -1,13 +1,13 @@
 //
-//  RikiUITestsLaunchTests.swift
-//  RikiUITests
+//  CurioUITestsLaunchTests.swift
+//  CurioUITests
 //
 //  Created by Manik Kumar on 5/1/25.
 //
 
 import XCTest
 
-final class RikiUITestsLaunchTests: XCTestCase {
+final class CurioUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

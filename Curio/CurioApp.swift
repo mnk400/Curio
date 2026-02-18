@@ -1,6 +1,6 @@
 //
-//  RikiApp.swift
-//  Riki
+//  CurioApp.swift
+//  Curio
 //
 //  Created by Manik on 5/1/25.
 //
@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 @main
-struct RikiApp: App {
+struct CurioApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
