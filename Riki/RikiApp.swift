@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct RikiApp: App {
@@ -17,6 +18,7 @@ struct RikiApp: App {
                     setupAppearance()
                 }
         }
+        .modelContainer(for: BookmarkArticle.self)
     }
     
     private func setupAppearance() {

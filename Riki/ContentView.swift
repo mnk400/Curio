@@ -6,20 +6,48 @@
 //
 
 import SwiftUI
+import SwiftData
 import Combine
 
 /// Main content view that displays Wikipedia articles in a full-screen scrollable format
 struct ContentView: View {
     @StateObject private var viewModel = WikipediaFeedViewModel()
-    
+    @Environment(\.modelContext) private var modelContext
+    @State private var bookmarkManager: BookmarkManager?
+    @State private var showingBookmarks = false
+
     var body: some View {
         ZStack {
             Color.black
                 .ignoresSafeArea(.all)
-            
-            VerticalArticleFeedView(viewModel: viewModel)
+
+            if let bookmarkManager {
+                VerticalArticleFeedView(viewModel: viewModel, bookmarkManager: bookmarkManager)
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            Menu {
+                Button {
+                    showingBookmarks = true
+                } label: {
+                    Label("Bookmarks", systemImage: "bookmark")
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding(12)
+                    .glassEffect(.regular.interactive(), in: .circle)
+            }
+            .padding(.trailing, 16)
+            .padding(.top, 8)
+        }
+        .sheet(isPresented: $showingBookmarks) {
+            BookmarksView()
         }
         .task {
+            bookmarkManager = BookmarkManager(modelContext: modelContext)
             await viewModel.loadInitialArticles()
         }
     }
@@ -30,8 +58,9 @@ struct ContentView: View {
 /// A vertical scrolling view that displays Wikipedia articles in a paginated format
 struct VerticalArticleFeedView: View {
     @ObservedObject var viewModel: WikipediaFeedViewModel
+    var bookmarkManager: BookmarkManager
     @State private var currentArticleIndex = 0
-    
+
     var body: some View {
         GeometryReader { geometry in
             ScrollViewReader { scrollProxy in
@@ -41,7 +70,8 @@ struct VerticalArticleFeedView: View {
                             ArticleCardView(
                                 article: article,
                                 isCurrentlyVisible: abs(index - currentArticleIndex) <= 1,
-                                screenSize: geometry.size
+                                screenSize: geometry.size,
+                                bookmarkManager: bookmarkManager
                             )
                             .frame(width: geometry.size.width, height: geometry.size.height)
                             .id(index)
@@ -95,6 +125,7 @@ struct ArticleCardView: View {
     let article: WikiArticle
     let isCurrentlyVisible: Bool
     let screenSize: CGSize
+    var bookmarkManager: BookmarkManager
     @State private var isPresentingFullArticle = false
 
     private var useFullscreenLayout: Bool {
@@ -234,22 +265,46 @@ struct ArticleCardView: View {
     }
 
     private var readMoreButton: some View {
-        Button(action: {
-            isPresentingFullArticle = true
-        }) {
-            HStack(spacing: 8) {
-                Text("Read More")
-                    .font(.body)
-                    .fontWeight(.semibold)
-                Image(systemName: "arrow.right")
-                    .font(.subheadline)
+        HStack(spacing: 8) {
+            Button(action: {
+                isPresentingFullArticle = true
+            }) {
+                HStack(spacing: 8) {
+                    Text("Read More")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                    Image(systemName: "arrow.right")
+                        .font(.body)
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 14)
+                .glassEffect(.regular.interactive(), in: .capsule)
             }
-            .foregroundColor(.white)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
-            .glassEffect(.regular.interactive(), in: .capsule)
+            .accessibilityLabel("Read full article about \(article.title)")
+
+            ShareLink(item: article.url) {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding(14)
+                    .glassEffect(.regular.interactive(), in: .circle)
+            }
+            .accessibilityLabel("Share article about \(article.title)")
+
+            Button {
+                bookmarkManager.toggle(article: article)
+            } label: {
+                Image(systemName: bookmarkManager.isBookmarked(articleId: article.id) ? "bookmark.fill" : "bookmark")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding(14)
+                    .glassEffect(.regular.interactive(), in: .circle)
+            }
+            .accessibilityLabel(bookmarkManager.isBookmarked(articleId: article.id) ? "Remove bookmark for \(article.title)" : "Bookmark \(article.title)")
         }
-        .accessibilityLabel("Read full article about \(article.title)")
     }
 }
 
