@@ -25,4 +25,12 @@ enum AppConfiguration {
         /// How many articles from the end triggers the next fetch
         static let loadMoreThreshold = 1
     }
+
+    /// Deepcat feed mode configuration
+    enum DeepCat {
+        /// Number of article titles to fetch per search request
+        static let searchBatchSize = 50
+        /// Max retry attempts for the deepcat search query
+        static let maxRetries = 3
+    }
 }

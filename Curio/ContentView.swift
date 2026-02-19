@@ -20,12 +20,43 @@ struct ContentView: View {
             Color.black
                 .ignoresSafeArea(.all)
 
-            if let bookmarkManager {
+            if let errorMessage = viewModel.errorMessage, viewModel.articles.isEmpty {
+                VStack(spacing: 16) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.secondary)
+                    Text(errorMessage)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                    Button {
+                        viewModel.retry()
+                    } label: {
+                        Text("Try Again")
+                            .fontWeight(.medium)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 10)
+                            .glassEffect(.regular.interactive(), in: .capsule)
+                    }
+                }
+            } else if let bookmarkManager {
                 VerticalArticleFeedView(viewModel: viewModel, bookmarkManager: bookmarkManager)
             }
         }
         .overlay(alignment: .topTrailing) {
             Menu {
+                ForEach(FeedMode.allModes, id: \.self) { mode in
+                    Toggle(isOn: Binding(
+                        get: { viewModel.feedMode == mode },
+                        set: { if $0 { viewModel.setFeedMode(mode) } }
+                    )) {
+                        Label(mode.title, systemImage: mode.systemImage)
+                    }
+                }
+
+                Divider()
+
                 Button {
                     showingBookmarks = true
                 } label: {

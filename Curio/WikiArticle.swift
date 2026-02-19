@@ -82,3 +82,21 @@ struct ThumbnailInfo: Codable {
     let width: Int
     let height: Int
 }
+
+// MARK: - Search API Response Models (MediaWiki Action API)
+
+/// Top-level response from the MediaWiki `action=query&list=search` endpoint
+struct DeepCatSearchResponse: Codable {
+    let query: DeepCatSearchQuery
+}
+
+/// Query result containing the search results
+struct DeepCatSearchQuery: Codable {
+    let search: [DeepCatSearchResult]
+}
+
+/// A single search result from the deepcat query
+struct DeepCatSearchResult: Codable {
+    let pageid: Int
+    let title: String
+}

@@ -94,7 +94,11 @@ struct ArticleCardView: View {
                     Color.black
                 }
             } else {
-                Color.black
+                LinearGradient(
+                    colors: [Color.gray.opacity(0.3), Color.black],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
             }
 
             VStack(spacing: 0) {
@@ -117,6 +121,10 @@ struct ArticleCardView: View {
 
                     Spacer()
                 } else {
+                    Spacer()
+                    Text("No image available")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     Spacer()
                 }
 
