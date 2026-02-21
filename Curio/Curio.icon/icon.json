@@ -1,16 +1,38 @@
 {
   "fill" : {
-    "automatic-gradient" : "display-p3:0.40890,0.53344,0.71478,1.00000"
+    "automatic-gradient" : "display-p3:0.34666,0.48014,0.72834,1.00000"
   },
   "groups" : [
     {
       "layers" : [
         {
+          "hidden" : false,
+          "image-name" : "c412de838310dc51d59951c523945f7e Background Removed.png",
+          "name" : "c412de838310dc51d59951c523945f7e Background Removed",
+          "position" : {
+            "scale" : 1.2,
+            "translation-in-points" : [
+              4.400000000000091,
+              -0.5499999999999545
+            ]
+          }
+        },
+        {
           "fill" : {
-            "solid" : "srgb:1.00000,1.00000,1.00000,1.00000"
+            "solid" : "display-p3:0.00000,0.00000,0.00000,1.00000"
           },
-          "image-name" : "archive.png",
-          "name" : "archive"
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "c412de838310dc51d59951c523945f7e Background Removed.png",
+          "name" : "c412de838310dc51d59951c523945f7e Background Removed",
+          "opacity" : 0.08,
+          "position" : {
+            "scale" : 1.2,
+            "translation-in-points" : [
+              20.89218750000009,
+              21.934375000000045
+            ]
+          }
         }
       ],
       "shadow" : {

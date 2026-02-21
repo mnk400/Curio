@@ -19,11 +19,11 @@ enum AppConfiguration {
     /// Article feed loading behaviour
     enum Content {
         /// Number of articles fetched on first launch
-        static let initialArticleCount = 5
+        static let initialArticleCount = 6
         /// Number of articles fetched when scrolling near the end
-        static let additionalArticleCount = 3
+        static let additionalArticleCount = 5
         /// How many articles from the end triggers the next fetch
-        static let loadMoreThreshold = 1
+        static let loadMoreThreshold = 2
     }
 
     /// Deepcat feed mode configuration

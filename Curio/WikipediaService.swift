@@ -29,7 +29,10 @@ enum WikipediaError: LocalizedError {
     case noData
     case parsingError(String)
     case networkError(Error)
+    case httpError(statusCode: Int)
     case articleNotFound
+    case noSearchResults(mode: FeedMode)
+    case noArticlesWithImages(mode: FeedMode, tried: Int)
 
     var errorDescription: String? {
         switch self {
@@ -41,8 +44,14 @@ enum WikipediaError: LocalizedError {
             return "Failed to parse article: \(message)"
         case .networkError(let error):
             return "Network error: \(error.localizedDescription)"
+        case .httpError(let statusCode):
+            return "Wikipedia returned HTTP \(statusCode)"
         case .articleNotFound:
             return "Article not found"
+        case .noSearchResults(let mode):
+            return "No \(mode.title) articles found. Try a different mode."
+        case .noArticlesWithImages(let mode, let tried):
+            return "Checked \(tried) \(mode.title) articles but none had images. Try again."
         }
     }
 }
@@ -60,13 +69,15 @@ final class WikipediaService: WikipediaServiceProtocol {
     /// Title buffers keyed by feed mode for category-based feeds
     private var titleBuffers: [FeedMode: [String]] = [:]
 
+    /// User's current location for nearby article fetching
+    private(set) var userCoordinate: (latitude: Double, longitude: Double)?
+
     private enum APIConstants {
         static let randomSummaryURL = "https://en.wikipedia.org/api/rest_v1/page/random/summary"
         static let summaryBaseURL = "https://en.wikipedia.org/api/rest_v1/page/summary/"
         static let searchAPIBaseURL = "https://en.wikipedia.org/w/api.php"
         static let requestTimeout: TimeInterval = 60
         static let resourceTimeout: TimeInterval = 120
-        static let maxArticleRetries = 3
     }
 
     private init() {
@@ -79,13 +90,18 @@ final class WikipediaService: WikipediaServiceProtocol {
         self.jsonDecoder = JSONDecoder()
     }
 
+    /// Sets the user's current location for nearby article fetching
+    func setUserLocation(latitude: Double, longitude: Double) {
+        userCoordinate = (latitude: latitude, longitude: longitude)
+    }
+
     /// Fetches an article appropriate for the given feed mode
     func fetchArticle(for mode: FeedMode) async throws -> WikiArticle {
         switch mode {
         case .random:
             return try await fetchRandomArticle()
         default:
-            return try await fetchDeepCatArticle(for: mode)
+            return try await fetchSearchArticle(for: mode)
         }
     }
 
@@ -120,20 +136,25 @@ final class WikipediaService: WikipediaServiceProtocol {
         }
     }
     
-    // MARK: - DeepCat Category Feeds
+    // MARK: - Search-Based Feeds (DeepCat & Nearby)
 
-    /// Fetches an article from a deepcat-based feed mode, using a per-mode title buffer
-    private func fetchDeepCatArticle(for mode: FeedMode) async throws -> WikiArticle {
-        for _ in 0..<APIConstants.maxArticleRetries {
-            if titleBuffers[mode, default: []].isEmpty {
-                try await refillTitleBuffer(for: mode)
-            }
+    /// Fetches an article from a search-based feed mode, using a per-mode title buffer.
+    /// Tries all titles in the buffer before giving up — the buffer is already bounded by `searchBatchSize`.
+    private func fetchSearchArticle(for mode: FeedMode) async throws -> WikiArticle {
+        if titleBuffers[mode, default: []].isEmpty {
+            try await refillTitleBuffer(for: mode)
+        }
 
-            guard titleBuffers[mode]?.isEmpty == false else {
-                throw WikipediaError.articleNotFound
-            }
+        guard titleBuffers[mode]?.isEmpty == false else {
+            throw WikipediaError.noSearchResults(mode: mode)
+        }
 
+        var triedCount = 0
+        var lastError: Error?
+
+        while titleBuffers[mode]?.isEmpty == false {
             let title = titleBuffers[mode]!.removeFirst()
+            triedCount += 1
             do {
                 let article = try await fetchArticle(titled: title)
                 let wikiArticle = articleFromSummary(article)
@@ -141,22 +162,38 @@ final class WikipediaService: WikipediaServiceProtocol {
                     return wikiArticle
                 }
             } catch {
+                lastError = error
                 continue
             }
         }
-        throw WikipediaError.articleNotFound
+
+        throw lastError ?? WikipediaError.noArticlesWithImages(mode: mode, tried: triedCount)
     }
 
-    /// Refills the title buffer for a given mode using its deepcat search term (with retry)
+    /// Resolves the search term for a given mode
+    private func searchTerm(for mode: FeedMode) -> String? {
+        if let deepcat = mode.deepcatSearchTerm {
+            return deepcat
+        }
+        if mode == .nearby, let coord = userCoordinate {
+            return "nearcoord:50km,\(coord.latitude),\(coord.longitude)"
+        }
+        return nil
+    }
+
+    /// Refills the title buffer for a given mode using its search term (with retry)
+    /// Retries with progressively smaller offsets if the search returns no results
     private func refillTitleBuffer(for mode: FeedMode) async throws {
-        guard let searchTerm = mode.deepcatSearchTerm,
+        guard let searchTerm = searchTerm(for: mode),
               let maxOffset = mode.deepcatMaxOffset else { return }
 
         let batchSize = AppConfiguration.DeepCat.searchBatchSize
         let maxAttempts = AppConfiguration.DeepCat.maxRetries
+        var effectiveMaxOffset = maxOffset
 
         for attempt in 1...maxAttempts {
-            let randomOffset = Int.random(in: 0..<max(1, maxOffset - batchSize))
+            let randomOffset = Int.random(in: 0..<max(1, effectiveMaxOffset - batchSize))
+            print("[\(mode.title)] search attempt \(attempt)/\(maxAttempts), offset=\(randomOffset) (max=\(effectiveMaxOffset))")
 
             var components = URLComponents(string: APIConstants.searchAPIBaseURL)!
             components.queryItems = [
@@ -179,8 +216,23 @@ final class WikipediaService: WikipediaServiceProtocol {
                 try validateResponseData(data)
 
                 let result = try jsonDecoder.decode(DeepCatSearchResponse.self, from: data)
-                titleBuffers[mode] = result.query.search.map(\.title).shuffled()
-                return
+                let titles = result.query.search.map(\.title)
+
+                if !titles.isEmpty {
+                    titleBuffers[mode] = titles.shuffled()
+                    return
+                }
+
+                // Empty results — offset likely overshot, shrink range and retry
+                effectiveMaxOffset = max(batchSize, effectiveMaxOffset / 4)
+                print("[\(mode.title)] empty results, reducing max offset to \(effectiveMaxOffset)")
+
+                if attempt == maxAttempts {
+                    throw WikipediaError.noSearchResults(mode: mode)
+                }
+            } catch let error as WikipediaError {
+                if attempt == maxAttempts { throw error }
+                try await Task.sleep(for: .seconds(1))
             } catch {
                 if attempt == maxAttempts {
                     throw WikipediaError.networkError(error)
@@ -222,7 +274,7 @@ final class WikipediaService: WikipediaServiceProtocol {
         }
 
         guard httpResponse.statusCode == 200 else {
-            throw WikipediaError.networkError(URLError(.badServerResponse))
+            throw WikipediaError.httpError(statusCode: httpResponse.statusCode)
         }
     }
 
