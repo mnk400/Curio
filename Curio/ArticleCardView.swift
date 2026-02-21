@@ -201,6 +201,7 @@ struct ArticleCardView: View {
             }
             .accessibilityLabel(bookmarkManager.isBookmarked(articleId: article.id) ? "Remove bookmark for \(article.title)" : "Bookmark \(article.title)")
         }
+        .environment(\.colorScheme, .dark)
     }
 }
 

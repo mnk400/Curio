@@ -39,6 +39,7 @@ struct ContentView: View {
                             .padding(.vertical, 10)
                             .glassEffect(.regular.interactive(), in: .capsule)
                     }
+                    .environment(\.colorScheme, .dark)
                 }
             } else if let bookmarkManager {
                 VerticalArticleFeedView(viewModel: viewModel, bookmarkManager: bookmarkManager)
@@ -66,12 +67,14 @@ struct ContentView: View {
                 Image(systemName: "ellipsis")
                     .font(.body)
                     .fontWeight(.semibold)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.primary)
                     .padding(12)
                     .glassEffect(.regular.interactive(), in: .circle)
             }
+            .tint(.primary)
             .padding(.trailing, 16)
             .padding(.top, 8)
+            .environment(\.colorScheme, .dark)
         }
         .sheet(isPresented: $showingBookmarks) {
             BookmarksView()
